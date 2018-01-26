@@ -1128,10 +1128,7 @@ function Set-TargetResource
         }
 
         # Prepare the register arguments
-        $registerArguments = @{
-            TaskName = $TaskName
-            TaskPath = $TaskPath
-        }
+        $registerArguments = @{}
 
         if ($PSBoundParameters.ContainsKey('ExecuteAsCredential'))
         {
@@ -1200,6 +1197,7 @@ function Set-TargetResource
             $scheduledTask = New-ScheduledTask @scheduledTaskArguments -ErrorAction Stop
         }
             
+       
         if ($repetition)
         {
             Write-Verbose -Message ($script:localizedData.SetRepetitionTriggerMessage -f $TaskName, $TaskPath)
@@ -1214,16 +1212,18 @@ function Set-TargetResource
         if ($currentValues.Ensure -eq 'Present')
         {
             Write-Verbose -Message ($script:localizedData.UpdateScheduledTaskMessage -f $TaskName, $TaskPath)
-            $null = Set-ScheduledTask -InputObject $scheduledTask
+            $null = Set-ScheduledTask -InputObject $scheduledTask @registerArguments
         
         } else {
             Write-Verbose -Message ($script:localizedData.CreateNewScheduledTaskMessage -f $TaskName, $TaskPath)
 
-            # Register the scheduled task
+            # Register the scheduled task and 
+
+            $registerArguments.Add('TaskName',$TaskName)
+            $registerArguments.Add('TaskPath',$TaskPath)
             $registerArguments.Add('InputObject', $scheduledTask)
 
             Write-Verbose -Message ($script:localizedData.RegisterScheduledTaskMessage -f $TaskName, $TaskPath)
-            Write-Verbose -Message ($registerArguments | Out-String)
             Write-Verbose -Message ($TaskName)
          
             $null = Register-ScheduledTask @registerArguments
